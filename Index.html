@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Engineering Masterclass</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Literata:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a08;
+    --surface: #111110;
+    --surface2: #1a1a17;
+    --border: #2a2a25;
+    --accent: #e8d44d;
+    --accent2: #4de8a0;
+    --accent3: #e84d4d;
+    --text: #e8e4d8;
+    --muted: #7a7a6a;
+    --code-bg: #0d0d0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Literata', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* LAYOUT */
+  .shell { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .sidebar-header {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-header .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  .progress-bar-wrap {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .progress-track {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .nav-section {
+    padding: 16px 0;
+  }
+
+  .nav-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0 24px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+
+  .nav-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(232, 212, 77, 0.05);
+  }
+
+  .nav-item.completed { color: var(--accent2); }
+  .nav-item.completed .nav-dot { background: var(--accent2); }
+
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+
+  .nav-item.active .nav-dot { background: var(--accent); }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    max-width: 820px;
+    padding: 48px 56px;
+    overflow-y: auto;
+  }
+
+  /* LESSON */
+  .lesson { display: none; animation: fadeUp 0.4s ease; }
+  .lesson.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .lesson-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .lesson-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: rgba(232, 212, 77, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(232, 212, 77, 0.2);
+  }
+
+  .lesson-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .lesson h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .lesson-subtitle {
+    font-size: 17px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 36px;
+    padding-bottom: 36px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lesson p { margin-bottom: 20px; color: var(--text); }
+
+  .lesson h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 36px 0 14px;
+    color: var(--text);
+  }
+
+  .lesson h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 24px 0 10px;
+  }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 20px 0;
+    overflow: hidden;
+  }
+
+  .code-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .code-label.bad { color: var(--accent3); }
+  .code-label.good { color: var(--accent2); }
+
+  .code-content {
+    padding: 18px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #c8c8b8;
+    white-space: pre-wrap;
+  }
+
+  /* COMPARISON */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  /* CALLOUT */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(232, 212, 77, 0.05);
+    padding: 16px 20px;
+    border-radius: 0 6px 6px 0;
+    margin: 24px 0;
+    font-size: 15px;
+  }
+
+  .callout.tip { border-color: var(--accent2); background: rgba(77, 232, 160, 0.05); }
+  .callout.warning { border-color: var(--accent3); background: rgba(232, 77, 77, 0.05); }
+
+  .callout strong {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+    color: var(--accent);
+  }
+
+  .callout.tip strong { color: var(--accent2); }
+  .callout.warning strong { color: var(--accent3); }
+
+  /* EXERCISE */
+  .exercise {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin: 32px 0;
+  }
+
+  .exercise-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .exercise-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    background: rgba(232, 212, 77, 0.15);
+    color: var(--accent);
+    border-radius: 3px;
+  }
+
+  .exercise h4 {
+    margin: 0 !important;
+    font-family: 'Syne', sans-serif !important;
+    font-size: 16px !important;
+    color: var(--text) !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+  }
+
+  .exercise p { margin-bottom: 12px; font-size: 15px; }
+
+  .exercise textarea {
+    width: 100%;
+    min-height: 120px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .exercise textarea:focus { border-color: var(--accent); }
+  .exercise textarea::placeholder { color: var(--muted); font-style: italic; }
+
+  .ex-hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* FORMULA */
+  .formula {
+    background: var(--code-bg);
+    border: 1px solid rgba(232, 212, 77, 0.3);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  /* LEVELS GRID */
+  .levels-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .level-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .level-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .level-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .level-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .level-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* TECHNIQUE TABLE */
+  .technique-list { margin: 20px 0; }
+
+  .technique {
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .technique:last-child { border-bottom: none; }
+
+  .tech-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 24px;
+    padding-top: 2px;
+  }
+
+  .tech-body h5 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .tech-body p {
+    font-size: 14px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* NAV BUTTONS */
+  .lesson-nav {
+    display: flex;
+    gap: 12px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 500;
+  }
+  .btn-primary:hover { background: #f0df60; transform: translateY(-1px); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--text); }
+
+  .btn-complete {
+    background: var(--accent2);
+    color: var(--bg);
+    margin-left: auto;
+  }
+  .btn-complete:hover { background: #60f0b0; }
+
+  /* CHEAT SHEET GRID */
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .cheat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+  }
+
+  .cheat-card h5 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .cheat-card ul { list-style: none; }
+  .cheat-card ul li {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cheat-card ul li:last-child { border: none; }
+  .cheat-card ul li::before { content: '→ '; color: var(--accent2); }
+
+  /* SCROLL */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px; }
+    .compare { grid-template-columns: 1fr; }
+    .levels-grid { grid-template-columns: 1fr; }
+    .cheat-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="label">Masterclass</div>
+      <h1>Prompt Engineering</h1>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-label">
+        <span>Progress</span>
+        <span id="progress-text">0 / 7</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+    <nav class="nav-section">
+      <div class="nav-section-title">Curriculum</div>
+      <div class="nav-item active" onclick="goTo(0)" id="nav-0">
+        <div class="nav-dot"></div> Introduction
+      </div>
+      <div class="nav-item" onclick="goTo(1)" id="nav-1">
+        <div class="nav-dot"></div> The Core Formula
+      </div>
+      <div class="nav-item" onclick="goTo(2)" id="nav-2">
+        <div class="nav-dot"></div> Role + Context
+      </div>
+      <div class="nav-item" onclick="goTo(3)" id="nav-3">
+        <div class="nav-dot"></div> Chain of Thought
+      </div>
+      <div class="nav-item" onclick="goTo(4)" id="nav-4">
+        <div class="nav-dot"></div> Few-Shot Prompting
+      </div>
+      <div class="nav-item" onclick="goTo(5)" id="nav-5">
+        <div class="nav-dot"></div> Debugging Prompts
+      </div>
+      <div class="nav-item" onclick="goTo(6)" id="nav-6">
+        <div class="nav-dot"></div> Cheat Sheet
+      </div>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- LESSON 0: INTRO -->
+    <div class="lesson active" id="lesson-0">
+      <div class="lesson-meta">
+        <span class="lesson-tag">Welcome</span>
+        <span class="lesson-num">Lesson 0 of 6</span>
+      </div>
+      <h2>Think Like the Model</h2>
+      <p class="lesson-subtitle">You don't learn prompting by memorizing tricks. You learn it by understanding how AI models actually process language.</p>
+
+      <p>You've been using ChatGPT and Claude casually — which means you already know the basics work. What you're about to learn is <em>why</em> some prompts get brilliant answers and others get mediocre ones.</p>
+
+      <p>The mental shift is this: <strong>an AI model is a prediction machine</strong>. It predicts what word comes next, given everything before it — including your prompt. Your prompt is the most powerful context-setter in the equation.</p>
+
+      <h3>Three Skill Levels</h3>
+      <div class="levels-grid">
+        <div class="level-card" onclick="goTo(1)">
+          <div class="level-num">01</div>
+          <div class="level-title">Beginner</div>
+          <div class="level-desc">Ask questions. Get answers. No structure.</div>
+        </div>
+        <div class="level-card" onclick="goTo(1)">
+          <div class="level-num">02</div>
+          <div class="level-title">Practitioner</div>
+          <div class="level-desc">Use role, context, format. Reliable results.</div>
+        </div>
+        <div class="level-card" onclick="goTo(1)">
+          <div class="level-num">03</div>
+          <div class="level-title">Engineer</div>
+          <div class="level-desc">Chain prompts. Debug. Build systems.</div>
+        </div>
+      </div>
+
+      <p>After this course, you'll be a solid <strong>Practitioner</strong> with Engineer skills for your use cases in writing and problem solving.</p>
+
+      <div class="callout">
+        <strong>How this works</strong>
+        Each lesson has a concept, real examples (good vs. bad), and a hands-on exercise. You learn by rewriting prompts — not just reading about them.
+      </div>
+
+      <h3>The One Truth</h3>
+      <p>Every weak prompt has the same root cause: <strong>ambiguity</strong>. The model fills gaps with its best guess. Your job is to leave fewer gaps.</p>
+
+      <div class="lesson-nav">
+        <button class="btn btn-primary" onclick="completeAndNext(0)">Start Learning →</button>
+      </div>
+    </div>
+
+    <!-- LESSON 1: CORE FORMULA -->
+    <div class="lesson" id="lesson-1">
+      <div class="lesson-meta">
+        <span class="lesson-tag">Foundation</span>
+        <span class="lesson-num">Lesson 1 of 6</span>
+      </div>
+      <h2>The Core Formula</h2>
+      <p class="lesson-subtitle">Every great prompt has the same four ingredients. Master these and you're already in the top 20%.</p>
+
+      <p>Most people write prompts like search queries — short, keyword-heavy, with no structure. That works for Google. It doesn't work for LLMs.</p>
+
+      <div class="formula">ROLE + CONTEXT + TASK + FORMAT = Precision Output</div>
+
+      <h3>Breaking It Down</h3>
+
+      <h4>1. Role — Who is the AI?</h4>
+      <p>Setting a role activates a different "distribution" of language patterns. A financial analyst writes differently than a creative writer. Use it.</p>
+
+      <h4>2. Context — What situation are we in?</h4>
+      <p>Background information that constrains the output. The more relevant context, the less the model has to guess.</p>
+
+      <h4>3. Task — What exactly do I want?</h4>
+      <p>Be specific. Not "write something about X" but "write a 3-paragraph explanation of X that a 12-year-old could understand."</p>
+
+      <h4>4. Format — How should it look?</h4>
+      <p>Tell the model how to structure the output. Bullet points? A table? A numbered list? JSON? If you don't specify, it guesses.</p>
+
+      <h3>See It In Action</h3>
+
+      <div class="compare">
+        <div class="code-block">
+          <div class="code-label bad">✗ Weak Prompt</div>
+          <div class="code-content">Write an email about the project delay.</div>
+        </div>
+        <div class="code-block">
+          <div class="code-label good">✓ Strong Prompt</div>
+          <div class="code-content">You are a professional project manager.
+
+Context: Our software launch is delayed by 2 weeks due to a critical bug found in QA. The client is a mid-size retail company expecting the launch next Monday.
+
+Task: Write a brief, professional email to the client informing them of the delay and our plan to resolve it.
+
+Format: Subject line + 3 short paragraphs. Tone: calm, confident, accountable.</div>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <strong>Quick Win</strong>
+        You don't need all four elements every time. But when a response disappoints you, check which element is missing — that's almost always the fix.
+      </div>
+
+      <div class="exercise">
+        <div class="exercise-header">
+          <span class="exercise-badge">Exercise</span>
+          <h4>Rewrite a Weak Prompt</h4>
+        </div>
+        <p>Take this weak prompt and rewrite it using the ROLE + CONTEXT + TASK + FORMAT formula:</p>
+        <div class="code-block" style="margin-bottom:16px">
+          <div class="code-label bad">Your starting point</div>
+          <div class="code-content">Help me write a LinkedIn post.</div>
+        </div>
+        <textarea placeholder="Rewrite the prompt here using all four elements: Role, Context, Task, Format..."></textarea>
+        <div class="ex-hint">Hint: Who are you? What's the post about? Who's the audience? What length/tone?</div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="btn btn-secondary" onclick="goTo(0)">← Back</button>
+        <button class="btn btn-complete" onclick="completeAndNext(1)">Mark Complete & Continue →</button>
+      </div>
+    </div>
+
+    <!-- LESSON 2: ROLE + CONTEXT -->
+    <div class="lesson" id="lesson-2">
+      <div class="lesson-meta">
+        <span class="lesson-tag">Core Skill</span>
+        <span class="lesson-num">Lesson 2 of 6</span>
+      </div>
+      <h2>Role & Context — The Power Duo</h2>
+      <p class="lesson-subtitle">These two elements do 70% of the heavy lifting. Here's how to use them with surgical precision.</p>
+
+      <h3>Role Prompting</h3>
+      <p>When you assign a role, you're not just telling the model to "pretend" — you're telling it which patterns of language, reasoning, and knowledge to weight more heavily.</p>
+
+      <div class="technique-list">
+        <div class="technique">
+          <div class="tech-num">→</div>
+          <div class="tech-body">
+            <h5>"You are an expert [X] with [Y] years of experience..."</h5>
+            <p>Activates domain expertise. Use for technical, professional, or specialized outputs.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">→</div>
+          <div class="tech-body">
+            <h5>"You are a [X] who specializes in helping [audience]..."</h5>
+            <p>Combines role + audience awareness. Powerful for writing and communication tasks.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">→</div>
+          <div class="tech-body">
+            <h5>"Respond as a [X] would to a [Y]..."</h5>
+            <p>Frames both the voice AND the relationship dynamic. Great for tone control.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>Context Loading</h3>
+      <p>Context is information the model needs but doesn't have. Think of it like a briefing before a meeting. The richer the briefing, the better the meeting.</p>
+
+      <div class="callout warning">
+        <strong>Common Mistake</strong>
+        Most people skip context entirely and then wonder why the output is too generic. The model can't read your mind — give it the situation.
+      </div>
+
+      <h4>What to include in context:</h4>
+
+      <div class="code-block">
+        <div class="code-label">Context Template</div>
+        <div class="code-content">Background: [What's the situation? What has happened so far?]
+Audience: [Who will read/use this output?]
+Constraints: [What must be included/excluded? Word limits? Tone rules?]
+Goal: [What should the output achieve? What does success look like?]</div>
+      </div>
+
+      <h3>Real-World Comparison</h3>
+
+      <div class="compare">
+        <div class="code-block">
+          <div class="code-label bad">✗ No context</div>
+          <div class="code-content">Explain machine learning to me.</div>
+        </div>
+        <div class="code-block">
+          <div class="code-label good">✓ With role + context</div>
+          <div class="code-content">You are a teacher who specializes in making complex technology concepts simple.
+
+I'm a marketing manager with no technical background. I need to understand machine learning well enough to have an intelligent conversation with our engineering team about our new recommendation engine.
+
+Explain machine learning using only business analogies. No jargon. 200 words max.</div>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="exercise-header">
+          <span class="exercise-badge">Exercise</span>
+          <h4>Build a Context-Rich Prompt</h4>
+        </div>
+        <p>Pick a real task you need help with at work or in your writing. Write a prompt using a specific role AND at least 3 context elements (background, audience, constraints).</p>
+        <textarea placeholder="Your real task goes here. Set the role, load the context, define the constraints..."></textarea>
+        <div class="ex-hint">The more specific, the better the output. Be a director briefing an actor.</div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-complete" onclick="completeAndNext(2)">Mark Complete & Continue →</button>
+      </div>
+    </div>
+
+    <!-- LESSON 3: CHAIN OF THOUGHT -->
+    <div class="lesson" id="lesson-3">
+      <div class="lesson-meta">
+        <span class="lesson-tag">Advanced</span>
+        <span class="lesson-num">Lesson 3 of 6</span>
+      </div>
+      <h2>Chain of Thought</h2>
+      <p class="lesson-subtitle">Force the model to think step-by-step before answering. This single technique dramatically improves accuracy on any complex task.</p>
+
+      <p>Here's the dirty secret: AI models can "jump to conclusions" just like humans. When they do, they often get it wrong. Chain of Thought (CoT) prompting forces the model to show its work — and the process of showing work actually produces better work.</p>
+
+      <h3>The Magic Phrase</h3>
+
+      <div class="formula">"Think through this step by step before giving your final answer."</div>
+
+      <p>That's it. Adding that phrase to a complex prompt significantly improves results on reasoning, analysis, math, and debugging tasks.</p>
+
+      <h3>Three Levels of CoT</h3>
+
+      <h4>Level 1: Simple Trigger</h4>
+      <div class="code-block">
+        <div class="code-label good">Add to any prompt</div>
+        <div class="code-content">Think through this step by step.
+[or]
+Let's work through this carefully before arriving at an answer.</div>
+      </div>
+
+      <h4>Level 2: Define the Steps</h4>
+      <div class="code-block">
+        <div class="code-label good">You control the reasoning structure</div>
+        <div class="code-content">Analyze this problem by:
+1. First identifying what information we have
+2. Then identifying what's missing or unclear
+3. Then listing possible approaches
+4. Finally recommending the best approach with reasoning
+
+Problem: [your problem here]</div>
+      </div>
+
+      <h4>Level 3: Scratchpad Prompting</h4>
+      <div class="code-block">
+        <div class="code-label good">Separate thinking from output</div>
+        <div class="code-content">First, use a <thinking> section to reason through the problem freely.
+Then, provide your final answer in a <answer> section.
+
+&lt;thinking&gt;
+[Model reasons here — unfiltered, exploratory]
+&lt;/thinking&gt;
+
+&lt;answer&gt;
+[Clean, structured final output]
+&lt;/answer&gt;</div>
+      </div>
+
+      <div class="callout">
+        <strong>When to use CoT</strong>
+        Use it whenever you're asking for: analysis, debugging, recommendations, comparisons, planning, or anything with multiple variables. Skip it for simple lookup or generation tasks.
+      </div>
+
+      <h3>Applied to Your Use Cases</h3>
+
+      <div class="code-block">
+        <div class="code-label good">Problem-solving example</div>
+        <div class="code-content">You are a senior consultant.
+
+I'm trying to decide whether to freelance full-time or take a job offer. 
+
+Before giving advice, think through:
+- What key factors determine this decision for most people
+- What information you'd need that I haven't provided
+- What the typical trade-offs are
+
+Then ask me the 3 most important questions you need answered before you can give me a useful recommendation.</div>
+      </div>
+
+      <div class="exercise">
+        <div class="exercise-header">
+          <span class="exercise-badge">Exercise</span>
+          <h4>Turn a Question into a CoT Prompt</h4>
+        </div>
+        <p>Take a complex problem or decision you're currently facing. Write a prompt that forces step-by-step reasoning before the final answer. Use Level 2 (define the steps).</p>
+        <textarea placeholder="Your complex problem + the step-by-step structure you want the model to follow..."></textarea>
+        <div class="ex-hint">Real problems work better than made-up ones. What are you actually wrestling with?</div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+        <button class="btn btn-complete" onclick="completeAndNext(3)">Mark Complete & Continue →</button>
+      </div>
+    </div>
+
+    <!-- LESSON 4: FEW-SHOT -->
+    <div class="lesson" id="lesson-4">
+      <div class="lesson-meta">
+        <span class="lesson-tag">Advanced</span>
+        <span class="lesson-num">Lesson 4 of 6</span>
+      </div>
+      <h2>Few-Shot Prompting</h2>
+      <p class="lesson-subtitle">Show don't tell. A single example teaches the model more than a paragraph of instructions.</p>
+
+      <p>The most underused technique in prompt engineering. Instead of describing what you want, you <em>demonstrate</em> it. The model reverse-engineers the pattern from your examples and replicates it.</p>
+
+      <h3>Zero-Shot vs Few-Shot</h3>
+
+      <div class="compare">
+        <div class="code-block">
+          <div class="code-label">Zero-Shot (describing)</div>
+          <div class="code-content">Write product descriptions that are punchy, benefit-focused, and end with a question.</div>
+        </div>
+        <div class="code-block">
+          <div class="code-label good">Few-Shot (showing)</div>
+          <div class="code-content">Here are examples of product descriptions I like:
+
+Product: Standing Desk
+Description: "Your back called. It wants its dignity back. This desk adjusts in 3 seconds, holds up to 350lbs, and arrives pre-assembled. Ready to stop sitting your health away?"
+
+Product: Noise-cancelling headphones
+Description: "The open office is a creativity killer. These headphones silence your colleagues and unlock your focus in 30 seconds. What would you do with 2 more hours of deep work a day?"
+
+Now write a description for: [your product]</div>
+        </div>
+      </div>
+
+      <h3>The Formula</h3>
+
+      <div class="code-block">
+        <div class="code-label">Few-shot structure</div>
+        <div class="code-content">Here are [N] examples of [what you want]:
+
+Input: [example input 1]
+Output: [example output 1]
+
+Input: [example input 2]  
+Output: [example output 2]
+
+Input: [example input 3]
+Output: [example output 3]
+
+Now apply this pattern to:
+Input: [your actual input]
+Output:</div>
+      </div>
+
+      <div class="callout tip">
+        <strong>Pro Tip</strong>
+        2–4 examples is the sweet spot. Too few and the pattern is unclear. Too many and you're wasting context. Always use your BEST examples — the model will treat them as the quality target.
+      </div>
+
+      <h3>Use Cases for Your Goals</h3>
+
+      <div class="technique-list">
+        <div class="technique">
+          <div class="tech-num">→</div>
+          <div class="tech-body">
+            <h5>Matching your writing style</h5>
+            <p>Give 2–3 examples of your own writing, then ask it to write in that style.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">→</div>
+          <div class="tech-body">
+            <h5>Consistent formatting</h5>
+            <p>Show the exact structure you want (e.g., meeting notes format) then ask it to apply it.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">→</div>
+          <div class="tech-body">
+            <h5>Tone replication</h5>
+            <p>Paste 2 examples of tone you love from other writers. Ask it to write in that register.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">→</div>
+          <div class="tech-body">
+            <h5>Classification & extraction</h5>
+            <p>Show examples of input → extracted label/data. The model learns the schema instantly.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="exercise-header">
+          <span class="exercise-badge">Exercise</span>
+          <h4>Build a Few-Shot Prompt</h4>
+        </div>
+        <p>Think of something you write repeatedly — emails, social posts, summaries, reports. Write 2 examples of the output you want, then ask the model to do a new one in the same pattern.</p>
+        <textarea placeholder="Example 1:
+[your best example of the thing you write]
+
+Example 2:
+[another good example]
+
+Now write one for: [your new input]" style="min-height:180px"></textarea>
+        <div class="ex-hint">Real examples from your own work outperform made-up ones by a wide margin.</div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
+        <button class="btn btn-complete" onclick="completeAndNext(4)">Mark Complete & Continue →</button>
+      </div>
+    </div>
+
+    <!-- LESSON 5: DEBUGGING -->
+    <div class="lesson" id="lesson-5">
+      <div class="lesson-meta">
+        <span class="lesson-tag">Problem Solving</span>
+        <span class="lesson-num">Lesson 5 of 6</span>
+      </div>
+      <h2>Debugging Prompts</h2>
+      <p class="lesson-subtitle">When the output is wrong, most people write a new prompt. Experts diagnose the failure and fix the root cause.</p>
+
+      <p>Prompt debugging is a skill most courses skip entirely. But it's what separates people who get good results occasionally from people who get great results reliably.</p>
+
+      <h3>The Diagnostic Framework</h3>
+      <p>When an output disappoints you, ask these four questions in order:</p>
+
+      <div class="technique-list">
+        <div class="technique">
+          <div class="tech-num">01</div>
+          <div class="tech-body">
+            <h5>Ambiguity Problem — "Did I leave gaps?"</h5>
+            <p>The model filled a gap with a bad assumption. Solution: be more explicit about the thing that went wrong.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">02</div>
+          <div class="tech-body">
+            <h5>Format Problem — "Did I specify how I want it?"</h5>
+            <p>Wrong structure, length, or style. Solution: add explicit format instructions or show an example.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">03</div>
+          <div class="tech-body">
+            <h5>Context Problem — "Does the model have enough to work with?"</h5>
+            <p>Output is too generic. Solution: add domain context, constraints, audience, or background.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">04</div>
+          <div class="tech-body">
+            <h5>Complexity Problem — "Am I asking too much at once?"</h5>
+            <p>Output handles part of the task well but fumbles the rest. Solution: split into sequential prompts.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>The Iterative Fix Pattern</h3>
+
+      <div class="code-block">
+        <div class="code-label">Step 1 — Diagnose out loud</div>
+        <div class="code-content">That response was [too generic / wrong tone / missing X / structured incorrectly].
+
+The specific problem is: [describe exactly what's wrong]</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-label">Step 2 — Give corrective instruction</div>
+        <div class="code-content">Redo this with these changes:
+- [Specific fix #1]
+- [Specific fix #2]
+Keep everything else the same.</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-label">Step 3 — Lock in what worked</div>
+        <div class="code-content">Good. Now I know the output I want looks like this:
+[paste the good output]
+
+With this as the template, do the same for: [next input]</div>
+      </div>
+
+      <h3>The Negative Constraint Trick</h3>
+      <p>Sometimes telling the model what NOT to do is more efficient than describing what to do. Especially useful for tone and style problems.</p>
+
+      <div class="code-block">
+        <div class="code-label good">Negative constraints in action</div>
+        <div class="code-content">Write a company bio for my consulting firm.
+
+Do NOT:
+- Use the words "passionate", "innovative", or "world-class"
+- Use generic consultant-speak
+- Start with "We are a..."
+- Use bullet points
+
+DO:
+- Sound like a person wrote it, not a brochure
+- Lead with a specific client outcome
+- Keep it under 80 words</div>
+      </div>
+
+      <div class="callout tip">
+        <strong>The Fastest Fix</strong>
+        When an output is close but not right, paste it back and say: "This is 80% right. The problems are [X] and [Y]. Rewrite it fixing only those issues."
+      </div>
+
+      <div class="exercise">
+        <div class="exercise-header">
+          <span class="exercise-badge">Exercise</span>
+          <h4>Diagnose a Real Failure</h4>
+        </div>
+        <p>Think of a time an AI gave you a disappointing response. Describe what went wrong, which of the 4 failure types it was, and write the corrective prompt you'd use now.</p>
+        <textarea placeholder="What was wrong with the output?
+Which failure type was it (ambiguity / format / context / complexity)?
+Write your corrective prompt:" style="min-height:160px"></textarea>
+        <div class="ex-hint">If you can't think of one, try asking Claude something vague and deliberately bad, then diagnose and fix it.</div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="btn btn-secondary" onclick="goTo(4)">← Back</button>
+        <button class="btn btn-complete" onclick="completeAndNext(5)">Mark Complete & Continue →</button>
+      </div>
+    </div>
+
+    <!-- LESSON 6: CHEAT SHEET -->
+    <div class="lesson" id="lesson-6">
+      <div class="lesson-meta">
+        <span class="lesson-tag">Reference</span>
+        <span class="lesson-num">Final Module</span>
+      </div>
+      <h2>Your Cheat Sheet</h2>
+      <p class="lesson-subtitle">Everything you learned, compressed into a reference you'll actually use.</p>
+
+      <div class="cheat-grid">
+        <div class="cheat-card">
+          <h5>Core Formula</h5>
+          <ul>
+            <li>Role: You are a [expert]...</li>
+            <li>Context: Background + audience + constraints</li>
+            <li>Task: Specific, measurable ask</li>
+            <li>Format: Structure + length + tone</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h5>Chain of Thought</h5>
+          <ul>
+            <li>Add "think step by step"</li>
+            <li>Define the reasoning steps</li>
+            <li>Use &lt;thinking&gt; / &lt;answer&gt; tags</li>
+            <li>Ask for questions before answers</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h5>Few-Shot Power Moves</h5>
+          <ul>
+            <li>Show 2–4 examples of desired output</li>
+            <li>Use Input / Output pairs</li>
+            <li>Use your OWN writing as examples</li>
+            <li>Best examples → best outputs</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h5>Debugging Checklist</h5>
+          <ul>
+            <li>Too vague → add constraints</li>
+            <li>Wrong format → specify it explicitly</li>
+            <li>Too generic → add more context</li>
+            <li>Too complex → split into steps</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h5>Power Phrases</h5>
+          <ul>
+            <li>"Think step by step before answering"</li>
+            <li>"Ask me clarifying questions first"</li>
+            <li>"Here are examples of what I want:"</li>
+            <li>"Do NOT use [X]. Instead use [Y]."</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h5>For Your Goals</h5>
+          <ul>
+            <li>Writing: Role + few-shot examples</li>
+            <li>Problem solving: CoT + structured steps</li>
+            <li>Learning: Role = teacher + CoT explain</li>
+            <li>Debugging: Diagnose → fix → lock in</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Your Daily Practice</h3>
+      <p>Prompt engineering is a muscle. Here's a 10-minute daily habit that will make you exceptional within 30 days:</p>
+
+      <div class="technique-list">
+        <div class="technique">
+          <div class="tech-num">1</div>
+          <div class="tech-body">
+            <h5>Use it for one real task today</h5>
+            <p>Every day, use a structured prompt (with role + context) for one real task. Don't use casual prompting.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">2</div>
+          <div class="tech-body">
+            <h5>Diagnose one bad output per day</h5>
+            <p>When something disappoints, don't move on. Spend 2 minutes diagnosing and fixing it. This is where real learning happens.</p>
+          </div>
+        </div>
+        <div class="technique">
+          <div class="tech-num">3</div>
+          <div class="tech-body">
+            <h5>Keep a "prompt wins" file</h5>
+            <p>Save prompts that produced excellent results. This becomes your personal few-shot library — more valuable than any course.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>What's Next?</strong>
+        From here, the advanced path goes into: system prompts, multi-turn conversation design, RAG (giving models documents to work from), and prompt chaining. Come back when you've mastered these foundations — which should take about 2–3 weeks of daily use.
+      </div>
+
+      <div class="callout tip">
+        <strong>Recommended Resource</strong>
+        Anthropic's official prompting guide at docs.claude.com has deep-dives on every technique here, plus advanced patterns. It's the best free resource on the web for this.
+      </div>
+
+      <div class="lesson-nav">
+        <button class="btn btn-secondary" onclick="goTo(5)">← Back</button>
+        <button class="btn btn-primary" onclick="completeAndNext(6)">🎉 Complete Course</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  let completed = new Set();
+  const total = 7;
+
+  function goTo(index) {
+    document.querySelectorAll('.lesson').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('lesson-' + index).classList.add('active');
+    document.getElementById('nav-' + index).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function completeAndNext(index) {
+    completed.add(index);
+    const nav = document.getElementById('nav-' + index);
+    nav.classList.add('completed');
+    nav.classList.remove('active');
+    updateProgress();
+    if (index < total - 1) goTo(index + 1);
+    else {
+      // Final completion
+      document.querySelector('.progress-fill').style.width = '100%';
+      document.getElementById('progress-text').textContent = total + ' / ' + total;
+    }
+  }
+
+  function updateProgress() {
+    const pct = Math.round((completed.size / total) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = completed.size + ' / ' + total;
+  }
+</script>
+</body>
+</html>
